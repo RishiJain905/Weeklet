@@ -23,9 +23,21 @@
       </div>
     </div>
 
+    <!-- Filter buttons -->
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="active">Active</button>
+      <button class="filter-btn" data-filter="done">Done</button>
+    </div>
+
     <!-- Task list (scrollable area) -->
     <div class="task-list" id="task-list">
       <!-- Populated by JS -->
+    </div>
+
+    <!-- Add task input -->
+    <div class="add-task">
+      <input type="text" id="task-input" placeholder="Add a task... (! for high priority)" maxlength="100">
     </div>
   </div>
 
