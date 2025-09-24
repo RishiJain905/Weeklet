@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Weeklet</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <h1 class="title">Weeklet</h1>
+      <div class="week-info">
+        <span id="current-week">Week of Sep 23-29, 2024</span>
+      </div>
+    </header>
+
+    <!-- Week Navigation -->
+    <div class="week-nav">
+      <div class="weekday-chips" id="weekday-chips">
+        <!-- Dynamically populated by JS -->
+      </div>
+    </div>
+
+    <!-- Add Task Section -->
+    <div class="add-task-section">
+      <div class="input-group">
+        <input 
+          type="text" 
+          id="task-input" 
+          placeholder="Add a task..." 
+          maxlength="100"
+        >
+        <button id="add-task-btn" class="add-btn">Add</button>
+      </div>
+      <div class="selected-day" id="selected-day">
+        Adding to: <span id="selected-day-name">Today</span>
+      </div>
+    </div>
+
+    <!-- Tasks List -->
+    <div class="tasks-section">
+      <div class="tasks-list" id="tasks-list">
+        <!-- Dynamically populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js" type="module"></script>
+</body>
+</html>
