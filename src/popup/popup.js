@@ -1,232 +1,187 @@
-// Import utilities
-import { formatDate, isToday, getWeekDays, getDayName } from '../lib/date.js';
 import { storageGet, storageSet } from '../lib/storage.js';
+import { toYmd, isToday, getWeekDays } from '../lib/date.js';
 
-// State
-let selectedDate = formatDate(new Date());
-let tasks = [];
-
-// Mock data for initial testing
-const mockTasks = [
+// Mock data for demonstration
+const MOCK_TASKS = [
   {
-    id: '1',
-    title: 'Review project proposal',
-    date: formatDate(new Date()),
-    done: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    id: 'task-1',
+    title: 'Review weekly report',
+    completed: false,
+    date: toYmd(new Date()),
+    priority: 'high'
   },
   {
-    id: '2',
+    id: 'task-2',
     title: 'Team standup meeting',
-    date: formatDate(new Date()),
-    done: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    completed: true,
+    date: toYmd(new Date(Date.now() + 24 * 60 * 60 * 1000)), // Tomorrow
+    priority: 'medium'
   },
   {
-    id: '3',
-    title: 'Update documentation',
-    date: formatDate(new Date(Date.now() + 24 * 60 * 60 * 1000)),
-    done: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    id: 'task-3',
+    title: 'Update project documentation',
+    completed: false,
+    date: toYmd(new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)), // Day after tomorrow
+    priority: 'low'
   }
 ];
 
-// DOM Elements
-const weekdayChipsContainer = document.getElementById('weekday-chips');
-const taskInput = document.getElementById('task-input');
-const addTaskBtn = document.getElementById('add-task-btn');
-const selectedDayName = document.getElementById('selected-day-name');
-const tasksList = document.getElementById('tasks-list');
-const currentWeekSpan = document.getElementById('current-week');
-
-// Initialize the popup
-async function init() {
-  try {
-    const storedTasks = await storageGet('tasks');
-    tasks = storedTasks || mockTasks;
-  } catch (error) {
-    console.log('Using mock data for initial setup');
-    tasks = mockTasks;
+class WeekletPopup {
+  constructor() {
+    this.currentDate = new Date();
+    this.selectedDate = toYmd(this.currentDate);
+    this.weekStart = 1; // Monday = 1, Sunday = 0
+    this.tasks = [];
+    
+    this.init();
   }
-  
-  renderWeekdays();
-  renderTasks();
-  updateSelectedDayDisplay();
-  updateWeekInfo();
-  
-  addTaskBtn.addEventListener('click', handleAddTask);
-  taskInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      handleAddTask();
-    }
-  });
-}
 
-// Render weekday chips
-function renderWeekdays() {
-  const weekDays = getWeekDays();
-  const today = formatDate(new Date());
-  
-  weekdayChipsContainer.innerHTML = '';
-  
-  weekDays.forEach(day => {
-    const chip = document.createElement('div');
-    chip.className = 'weekday-chip';
-    chip.dataset.date = day.date;
-    
-    if (day.date === today) {
-      chip.classList.add('today');
+  async init() {
+    try {
+      // Load tasks from storage or use mock data
+      const storedTasks = await storageGet('tasks');
+      this.tasks = storedTasks || MOCK_TASKS;
+      
+      // Save mock data if no data exists
+      if (!storedTasks) {
+        await storageSet('tasks', MOCK_TASKS);
+      }
+      
+      this.render();
+      this.attachEventListeners();
+    } catch (error) {
+      console.error('Failed to initialize Weeklet popup:', error);
+      // Use mock data as fallback
+      this.tasks = MOCK_TASKS;
+      this.render();
+      this.attachEventListeners();
     }
-    if (day.date === selectedDate) {
-      chip.classList.add('selected');
+  }
+
+  render() {
+    this.renderHeader();
+    this.renderWeekNavigation();
+    this.renderTaskList();
+  }
+
+  renderHeader() {
+    const titleEl = document.querySelector('.title');
+    const weekRangeEl = document.querySelector('.week-range');
+    
+    if (titleEl) titleEl.textContent = 'Weeklet';
+    
+    if (weekRangeEl) {
+      const weekDays = getWeekDays(this.selectedDate, this.weekStart);
+      const startDate = new Date(weekDays[0]);
+      const endDate = new Date(weekDays[6]);
+      
+      const formatDate = (date) => {
+        return date.toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric' 
+        });
+      };
+      
+      weekRangeEl.textContent = `${formatDate(startDate)} - ${formatDate(endDate)}`;
     }
+  }
+
+  renderWeekNavigation() {
+    const dayChipsEl = document.querySelector('.day-chips');
+    if (!dayChipsEl) return;
+
+    const weekDays = getWeekDays(this.selectedDate, this.weekStart);
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     
-    chip.innerHTML = `
-      <span class="weekday-name">${day.name}</span>
-      <span class="weekday-date">${day.dayNum}</span>
-    `;
+    dayChipsEl.innerHTML = '';
     
-    chip.addEventListener('click', () => {
-      selectDay(day.date);
+    weekDays.forEach(dateStr => {
+      const date = new Date(dateStr);
+      const dayName = dayNames[date.getDay()];
+      const dayDate = date.getDate();
+      
+      const chipEl = document.createElement('div');
+      chipEl.className = 'day-chip';
+      chipEl.dataset.date = dateStr;
+      
+      if (isToday(dateStr)) {
+        chipEl.classList.add('today');
+      }
+      
+      if (dateStr === this.selectedDate) {
+        chipEl.classList.add('selected');
+      }
+      
+      chipEl.innerHTML = `
+        <span class="day-name">${dayName}</span>
+        <span class="day-date">${dayDate}</span>
+      `;
+      
+      dayChipsEl.appendChild(chipEl);
     });
-    
-    weekdayChipsContainer.appendChild(chip);
-  });
-}
+  }
 
-function selectDay(date) {
-  selectedDate = date;
-  
-  document.querySelectorAll('.weekday-chip').forEach(chip => {
-    chip.classList.remove('selected');
-    if (chip.dataset.date === date) {
-      chip.classList.add('selected');
+  renderTaskList() {
+    const taskListEl = document.querySelector('.task-list');
+    if (!taskListEl) return;
+
+    const selectedTasks = this.tasks.filter(task => task.date === this.selectedDate);
+    
+    taskListEl.innerHTML = '';
+    
+    if (selectedTasks.length === 0) {
+      // CSS :empty pseudo-class will show "No tasks" message
+      return;
     }
-  });
-  
-  updateSelectedDayDisplay();
-  renderTasks();
-}
-
-function updateSelectedDayDisplay() {
-  const dayName = getDayName(selectedDate);
-  const today = formatDate(new Date());
-  
-  if (selectedDate === today) {
-    selectedDayName.textContent = 'Today';
-  } else {
-    selectedDayName.textContent = dayName;
+    
+    selectedTasks.forEach(task => {
+      const taskEl = document.createElement('div');
+      taskEl.className = 'task-item';
+      taskEl.dataset.taskId = task.id;
+      
+      const priorityIndicator = task.priority === 'high' ? '[HIGH]' : task.priority === 'medium' ? '[MED]' : '[LOW]';
+      const priorityColor = task.priority === 'high' ? '#e74c3c' : task.priority === 'medium' ? '#f39c12' : '#27ae60';
+      const completedStyle = task.completed ? 'text-decoration: line-through; opacity: 0.6;' : '';
+      
+      taskEl.innerHTML = `
+        <div class="task-title" style="${completedStyle}">
+          <span style="color: ${priorityColor}; font-weight: bold; font-size: 11px;">${priorityIndicator}</span> ${task.title}
+          <div class="task-meta">Priority: ${task.priority}${task.completed ? ' • Completed' : ''}</div>
+        </div>
+      `;
+      
+      taskListEl.appendChild(taskEl);
+    });
   }
-}
 
-function updateWeekInfo() {
-  const weekDays = getWeekDays();
-  const startDay = weekDays[0];
-  const endDay = weekDays[6];
-  
-  const startMonth = new Date(startDay.date).toLocaleDateString('en-US', { month: 'short' });
-  const endMonth = new Date(endDay.date).toLocaleDateString('en-US', { month: 'short' });
-  const year = new Date().getFullYear();
-  
-  if (startMonth === endMonth) {
-    currentWeekSpan.textContent = `Week of ${startMonth} ${startDay.dayNum}-${endDay.dayNum}, ${year}`;
-  } else {
-    currentWeekSpan.textContent = `Week of ${startMonth} ${startDay.dayNum} - ${endMonth} ${endDay.dayNum}, ${year}`;
-  }
-}
-
-async function handleAddTask() {
-  const title = taskInput.value.trim();
-  if (!title) return;
-  
-  const newTask = {
-    id: Date.now().toString(),
-    title,
-    date: selectedDate,
-    done: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  };
-  
-  tasks.push(newTask);
-  await saveTasks();
-  
-  taskInput.value = '';
-  renderTasks();
-}
-
-async function toggleTask(taskId) {
-  const task = tasks.find(t => t.id === taskId);
-  if (task) {
-    task.done = !task.done;
-    task.updatedAt = new Date().toISOString();
-    await saveTasks();
-    renderTasks();
-  }
-}
-
-async function deleteTask(taskId) {
-  tasks = tasks.filter(t => t.id !== taskId);
-  await saveTasks();
-  renderTasks();
-}
-
-function renderTasks() {
-  const dayTasks = tasks.filter(task => task.date === selectedDate);
-  
-  if (dayTasks.length === 0) {
-    tasksList.innerHTML = `
-      <div class="empty-state">
-        No tasks for this day.<br>
-        Add one above!
-      </div>
-    `;
-    return;
-  }
-  
-  tasksList.innerHTML = '';
-  
-  dayTasks.sort((a, b) => {
-    if (a.done !== b.done) {
-      return a.done ? 1 : -1;
+  attachEventListeners() {
+    // Day chip selection
+    const dayChipsEl = document.querySelector('.day-chips');
+    if (dayChipsEl) {
+      dayChipsEl.addEventListener('click', (e) => {
+        const chipEl = e.target.closest('.day-chip');
+        if (chipEl && chipEl.dataset.date) {
+          this.selectedDate = chipEl.dataset.date;
+          this.render();
+        }
+      });
     }
-    return new Date(a.createdAt) - new Date(b.createdAt);
-  });
-  
-  dayTasks.forEach(task => {
-    const taskElement = document.createElement('div');
-    taskElement.className = 'task-item';
-    
-    taskElement.innerHTML = `
-      <input 
-        type="checkbox" 
-        class="task-checkbox" 
-        ${task.done ? 'checked' : ''}
-        data-task-id="${task.id}"
-      >
-      <span class="task-text ${task.done ? 'completed' : ''}">${task.title}</span>
-      <button class="task-delete" data-task-id="${task.id}">×</button>
-    `;
-    
-    const checkbox = taskElement.querySelector('.task-checkbox');
-    const deleteBtn = taskElement.querySelector('.task-delete');
-    
-    checkbox.addEventListener('change', () => toggleTask(task.id));
-    deleteBtn.addEventListener('click', () => deleteTask(task.id));
-    
-    tasksList.appendChild(taskElement);
-  });
-}
 
-async function saveTasks() {
-  try {
-    await storageSet('tasks', tasks);
-  } catch (error) {
-    console.error('Failed to save tasks:', error);
+    // Task item interactions (for future implementation)
+    const taskListEl = document.querySelector('.task-list');
+    if (taskListEl) {
+      taskListEl.addEventListener('click', (e) => {
+        const taskEl = e.target.closest('.task-item');
+        if (taskEl && taskEl.dataset.taskId) {
+          console.log('Task clicked:', taskEl.dataset.taskId);
+          // Future: Add task editing/completion functionality
+        }
+      });
+    }
   }
 }
 
-document.addEventListener('DOMContentLoaded', init);
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  new WeekletPopup();
+});

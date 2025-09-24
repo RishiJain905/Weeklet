@@ -1,5 +1,5 @@
 /**
- * Storage utilities - wrapper around chrome.storage.sync
+ * Thin wrapper for chrome.storage.sync
  */
 
 export async function storageGet(keys) {

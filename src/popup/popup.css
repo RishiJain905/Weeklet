@@ -6,9 +6,9 @@
 }
 
 body {
-  width: 350px;
+  width: 340px;
   min-height: 400px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   font-size: 14px;
   line-height: 1.4;
   color: #333;
@@ -26,13 +26,13 @@ body {
 }
 
 .title {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
   color: #1a73e8;
   margin-bottom: 4px;
 }
 
-.week-info {
+.week-range {
   font-size: 12px;
   color: #666;
 }
@@ -42,14 +42,13 @@ body {
   margin-bottom: 16px;
 }
 
-.weekday-chips {
-  display: flex;
+.day-chips {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
   gap: 4px;
-  justify-content: space-between;
 }
 
-.weekday-chip {
-  flex: 1;
+.day-chip {
   padding: 8px 4px;
   text-align: center;
   border: 1px solid #e0e0e0;
@@ -58,145 +57,110 @@ body {
   transition: all 0.2s ease;
   font-size: 11px;
   font-weight: 500;
+  background: white;
 }
 
-.weekday-chip:hover {
+.day-chip:hover {
   background: #f5f5f5;
   border-color: #d0d0d0;
 }
 
-.weekday-chip.selected {
-  background: #1a73e8;
-  color: white;
-  border-color: #1a73e8;
-}
-
-.weekday-chip.today {
+.day-chip.today {
   border-color: #1a73e8;
   color: #1a73e8;
   font-weight: 600;
 }
 
-.weekday-chip.today.selected {
+.day-chip.selected {
   background: #1a73e8;
   color: white;
+  border-color: #1a73e8;
 }
 
-.weekday-name {
+.day-name {
   display: block;
   margin-bottom: 2px;
 }
 
-.weekday-date {
+.day-date {
   display: block;
   font-size: 10px;
   opacity: 0.8;
 }
 
-/* Add Task Section */
-.add-task-section {
-  margin-bottom: 16px;
-}
-
-.input-group {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-#task-input {
-  flex: 1;
-  padding: 8px 12px;
-  border: 1px solid #d0d0d0;
-  border-radius: 6px;
-  font-size: 14px;
-  outline: none;
-  transition: border-color 0.2s ease;
-}
-
-#task-input:focus {
-  border-color: #1a73e8;
-}
-
-.add-btn {
-  padding: 8px 16px;
-  background: #1a73e8;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.add-btn:hover {
-  background: #1557b0;
-}
-
-.selected-day {
-  font-size: 12px;
-  color: #666;
-}
-
-#selected-day-name {
-  color: #1a73e8;
-  font-weight: 500;
-}
-
-/* Tasks Section */
-.tasks-section {
+/* Task List */
+.task-list {
   max-height: 300px;
   overflow-y: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background: white;
 }
 
-.tasks-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.task-list:empty::after {
+  content: "No tasks for selected day";
+  display: block;
+  padding: 32px 16px;
+  text-align: center;
+  color: #999;
+  font-size: 14px;
 }
 
 .task-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 0;
-  border-bottom: 1px solid #f0f0f0;
 }
 
-.task-checkbox {
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
+.task-item:last-child {
+  border-bottom: none;
 }
 
-.task-text {
+.task-title {
   flex: 1;
   font-size: 14px;
   line-height: 1.3;
 }
 
-.task-text.completed {
-  text-decoration: line-through;
-  color: #888;
+.task-meta {
+  font-size: 11px;
+  color: #666;
+  margin-top: 2px;
 }
 
-.task-delete {
-  background: none;
-  border: none;
-  color: #999;
-  cursor: pointer;
-  padding: 2px;
-  font-size: 16px;
+/* Scrollbar styling */
+.task-list::-webkit-scrollbar {
+  width: 6px;
 }
 
-.task-delete:hover {
-  color: #dc3545;
+.task-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
 }
 
-.empty-state {
-  text-align: center;
-  padding: 32px 16px;
-  color: #999;
-  font-size: 14px;
+.task-list::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+
+.task-list::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+/* Responsive adjustments */
+@media (max-width: 360px) {
+  body {
+    width: 320px;
+  }
+  
+  .day-chips {
+    gap: 2px;
+  }
+  
+  .day-chip {
+    padding: 6px 2px;
+    font-size: 10px;
+  }
 }

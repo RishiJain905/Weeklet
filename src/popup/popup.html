@@ -8,42 +8,24 @@
 </head>
 <body>
   <div class="container">
-    <!-- Header -->
+    <!-- Header with week range -->
     <header class="header">
       <h1 class="title">Weeklet</h1>
-      <div class="week-info">
-        <span id="current-week">Week of Sep 23-29, 2024</span>
+      <div class="week-range" id="week-range">
+        <!-- Populated by JS -->
       </div>
     </header>
 
-    <!-- Week Navigation -->
+    <!-- Week navigation with 7 day chips -->
     <div class="week-nav">
-      <div class="weekday-chips" id="weekday-chips">
-        <!-- Dynamically populated by JS -->
+      <div class="day-chips" id="day-chips">
+        <!-- Populated by JS -->
       </div>
     </div>
 
-    <!-- Add Task Section -->
-    <div class="add-task-section">
-      <div class="input-group">
-        <input 
-          type="text" 
-          id="task-input" 
-          placeholder="Add a task..." 
-          maxlength="100"
-        >
-        <button id="add-task-btn" class="add-btn">Add</button>
-      </div>
-      <div class="selected-day" id="selected-day">
-        Adding to: <span id="selected-day-name">Today</span>
-      </div>
-    </div>
-
-    <!-- Tasks List -->
-    <div class="tasks-section">
-      <div class="tasks-list" id="tasks-list">
-        <!-- Dynamically populated by JS -->
-      </div>
+    <!-- Task list (scrollable area) -->
+    <div class="task-list" id="task-list">
+      <!-- Populated by JS -->
     </div>
   </div>
 
